@@ -4,3 +4,10 @@ fserver
 
 fserver is released under the MIT license. See the LICENSE
 file for the complete license.
+
+Third party code:
+-----------------
+
+* fserve/_sendfile.py from the Gunicorn project
+ 2009,2011 (c) Benoît Chesneau <benoitc@e-engura.org>
+ 2009,2011 (c) Paul J. Davis <paul.joseph.davis@gmail.com>
