@@ -11,8 +11,6 @@ except ImportError:
             argparse module is missing. Try one of this command to
             install it:
 
-            python setup.py install
-
             easy_install argparse
 
             pip install argparse""")
