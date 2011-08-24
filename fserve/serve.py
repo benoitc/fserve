@@ -115,17 +115,3 @@ class HttpWorker(TcpGeventWorker):
 
                 finally:
                     f.close()
-
-
-def main():
-    conf = {"address": ("127.0.0.1", 5000), "debug": True,
-            "num_workers": 3}
-    spec = (HttpWorker, 30, "send_file", {}, "worker",)
-    
-    arbiter = TcpArbiter(conf, spec)
-    arbiter.run()
-
-
-if __name__ == '__main__':
-    main()
-
