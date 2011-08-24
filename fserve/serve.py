@@ -71,7 +71,6 @@ class HttpWorker(TcpGeventWorker):
             util.write_error(sock, 404, "Not found", real_path + " not found")
         else:
             ctype = mimetypes.guess_type(real_path)[0]
-
             if ctype.startswith('text') or 'html' in ctype:
 
                 try:

@@ -56,6 +56,6 @@ Example:
 In your source folder::
 
     $ cd examples/static
-    $ fserve
+    $ fserve --workers 3
 
 And go on http://127.0.0.1:5000 url .
