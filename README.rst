@@ -13,6 +13,25 @@ Requirements
 - http-parser >= 0.6.3
 
 
+Installation
+++++++++++++
+
+Do one of this command to install it from pypi
+
+::
+
+    pip install fserve
+
+or::
+
+    easy_install fserve
+
+From source do::
+
+    $ git clone git://github.com/benoitc/fserve.git
+    $ cd fserve && python setup.py install
+
+
 Usage
 +++++
 
