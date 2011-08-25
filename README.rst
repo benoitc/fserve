@@ -12,6 +12,15 @@ Requirements
 - Pistil >= 0.1.0
 - http-parser >= 0.6.3
 
+Note: To set the process name, install the library setproctitle:
+
+::
+
+    $ ps ax|grep test_cors
+    78064 s002  S+     0:00.35 arbiter [test_cors running 3 workers]     
+    78065 s002  S+     0:00.10 worker test_cors [78065]     
+    78066 s002  S+     0:00.11 worker test_cors [78066]     
+    78067 s002  S+     0:00.09 worker test_cors [78067] 
 
 Installation
 ++++++++++++
@@ -48,6 +57,7 @@ Usage
       -h, --help         show this help message and exit
       --bind BIND        The socket to bind. A string of the form: 'HOST',
                          'HOST:PORT', 'unix:PATH'. An IP is a valid HOST.
+      --name NAME        name of the server
       --workers WORKERS  Number of workers
     --debug            Debug mode
 
