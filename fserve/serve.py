@@ -26,7 +26,7 @@ from http_parser.reader import SocketReader
 from pistil import util
 from pistil.tcp.gevent_worker import TcpGeventWorker
 
-CURDIR = os.path.dirname(__file__)
+BLKSIZE = 0x3FFFFFFF
 
 try:
     # Python 3.3 has os.sendfile().
@@ -37,6 +37,12 @@ except ImportError:
     except ImportError:
         sendfile = None
 
+
+def sendfile_all(fileno, sockno, offset, nbytes):
+    sent = 0
+    sent += sendfile(sockno, fileno, offset+sent, nbytes-sent)
+    while sent < nbytes:
+        sent += sendfile(sockno, fileno, offset+sent, nbytes-sent)
 
 class HttpWorker(TcpGeventWorker):
 
@@ -92,14 +98,21 @@ class HttpWorker(TcpGeventWorker):
                                 break
                             sock.send(data)
                     else:
-                        sent = 0
                         offset = 0
                         nbytes = clen
-                        sent += sendfile(sock.fileno(), fno, offset+sent, nbytes-sent)
-                        while sent != nbytes:
-                            sent += sendfile(sock.fileno(), fno, offset+sent, nbytes-sent)
 
-
+                        if nbytes > BLKSIZE:
+                            # Send file in at most 1GB blocks as some operating
+                            # systems can have problems with sending files in blocks
+                            # over 2GB.
+                            for m in range(0, nbytes, BLKSIZE):
+                                sendfile_all(fno, sock.fileno(), offset, 
+                                        min(nbytes, BLKSIZE))
+                                offset += BLKSIZE
+                                nbytes -= BLKSIZE
+                        else:
+                            sendfile_all(fno, sock.fileno(), offset,
+                                    nbytes)
                 finally:
                     if fno is not None:
                         os.close(fno)

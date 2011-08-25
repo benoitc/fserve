@@ -38,7 +38,7 @@ def sendfile(fdout, fdin, offset, nbytes):
         
         if result == -1:
             e = ctypes.get_errno()
-            if e == errno.EAGAIN and _nbytes.value:
+            if e == errno.EAGAIN and _nbytes.value is not None:
                 return _nbytes.value
             raise OSError(e, os.strerror(e))
         return _nbytes.value
@@ -50,7 +50,7 @@ def sendfile(fdout, fdin, offset, nbytes):
         result = _sendfile(fdin, fdout, offset, nbytes, None, _sbytes, 0)
         if result == -1:
             e = ctypes.get_errno()
-            if e == errno.EAGAIN and _sbytes.value:
+            if e == errno.EAGAIN and _sbytes.value is not None:
                 return _sbytes.value
             raise OSError(e, os.strerror(e))
         return _sbytes.value
@@ -63,7 +63,8 @@ def sendfile(fdout, fdin, offset, nbytes):
         sent = _sendfile(fdout, fdin, _offset, nbytes) 
         if sent == -1:
             e = ctypes.get_errno()
-            raise OSError(e, os.strerror(e))
+            if e != errno.EAGAIN:
+                raise OSError(e, os.strerror(e))
         return sent
 
 
