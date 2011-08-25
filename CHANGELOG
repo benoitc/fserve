@@ -1,0 +1,16 @@
+fserve changelog 
+================
+
+* 0.2.0 - 25 Aug 2011
+
+- Only use sendfile if available
+- Improve error handling (better EAGAIN support)
+- Add the possibility to set the server name via options
+
+* 0.1.1 - 24 Aug 2011
+
+- Fix typo
+
+* 0.1.0 - 24 Aug 2011 
+
+- Initial release
