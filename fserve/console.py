@@ -50,6 +50,12 @@ def run_server():
             help='Number of workers')
 
     parser.add_argument(
+            '--name', 
+            type=str, 
+            default="fserve",
+            help='name of the server')
+
+    parser.add_argument(
             '--debug', 
             action='store_true', 
             default=False,
@@ -66,9 +72,10 @@ def run_server():
     conf = {"address": address, "debug": args.debug,
             "num_workers": args.workers}
 
-    spec = (HttpWorker, 30, "send_file", {"path": path}, "worker",)
+    spec = (HttpWorker, 30, "worker", 
+            {"path": path}, args.name,)
     
-    arbiter = TcpArbiter(conf, spec)
+    arbiter = TcpArbiter(conf, spec, name=args.name)
     arbiter.run()
 
 
