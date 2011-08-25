@@ -15,6 +15,9 @@ except ImportError:
 
             pip install argparse""")
 
+from gevent import monkey
+monkey.noisy = False
+monkey.patch_all()
 
 from pistil.tcp.arbiter import TcpArbiter
 from pistil.util import parse_address

@@ -41,54 +41,43 @@ except ImportError:
 class HttpWorker(TcpGeventWorker):
 
     def handle(self, sock, addr):
-        p = HttpStream(SocketReader(sock))
+        sock.setblocking(1)
+        try:
+            p = HttpStream(SocketReader(sock))
 
-        path = p.path()
+            path = p.path()
 
-        if not path or path == "/":
-            path = "index.html"
-        
-        if path.startswith("/"):
-            path = path[1:]
-        
-        real_path = os.path.join(self.conf['path'], path)
+            if not path or path == "/":
+                path = "index.html"
+            
+            if path.startswith("/"):
+                path = path[1:]
+            
+            real_path = os.path.join(self.conf['path'], path)
 
-        if os.path.isdir(real_path):
-            lines = ["<ul>"]
-            for d in os.listdir(real_path):
-                fpath = os.path.join(real_path, d)
-                lines.append("<li><a href=" + d + ">" + d + "</a>")
+            if os.path.isdir(real_path):
+                lines = ["<ul>"]
+                for d in os.listdir(real_path):
+                    fpath = os.path.join(real_path, d)
+                    lines.append("<li><a href=" + d + ">" + d + "</a>")
 
-            data = "".join(lines)
-            resp = "".join(["HTTP/1.1 200 OK\r\n", 
-                            "Content-Type: text/html\r\n",
-                            "Content-Length:" + str(len(data)) + "\r\n",
-                            "Connection: close\r\n\r\n",
-                            data])
-            sock.sendall(resp)
-
-        elif not os.path.exists(real_path):
-            util.write_error(sock, 404, "Not found", real_path + " not found")
-        else:
-            ctype = mimetypes.guess_type(real_path)[0]
-            if ctype.startswith('text') or 'html' in ctype:
-
-                try:
-                    f = open(real_path, 'rb')
-                    data = f.read()
-                    resp = "".join(["HTTP/1.1 200 OK\r\n", 
-                                "Content-Type: " + ctype + "\r\n",
+                data = "".join(lines)
+                resp = "".join(["HTTP/1.1 200 OK\r\n", 
+                                "Content-Type: text/html\r\n",
                                 "Content-Length:" + str(len(data)) + "\r\n",
                                 "Connection: close\r\n\r\n",
                                 data])
-                    sock.sendall(resp)
-                finally:
-                    f.close()
-            else:
+                sock.sendall(resp)
 
+            elif not os.path.exists(real_path):
+                util.write_error(sock, 404, "Not found", real_path + " not found")
+            else:
+                ctype = mimetypes.guess_type(real_path)[0]
+                fno = None
                 try:
-                    f = open(real_path, 'r')
-                    clen = int(os.fstat(f.fileno())[6])
+                    fno = os.open(real_path,
+                            os.O_RDONLY|os.O_NONBLOCK)
+                    clen = int(os.fstat(fno)[6])
                     
                     # send headers
                     sock.send("".join(["HTTP/1.1 200 OK\r\n", 
@@ -98,20 +87,25 @@ class HttpWorker(TcpGeventWorker):
 
                     if not sendfile:
                         while True:
-                            data = f.read(4096)
+                            data = os.read(fno, 4096)
                             if not data:
                                 break
                             sock.send(data)
                     else:
-                        fileno = f.fileno()
-                        sockno = sock.fileno()
                         sent = 0
                         offset = 0
                         nbytes = clen
-                        sent += sendfile(sockno, fileno, offset+sent, nbytes-sent)
+                        sent += sendfile(sock.fileno(), fno, offset+sent, nbytes-sent)
                         while sent != nbytes:
-                            sent += sendfile(sock.fileno(), fileno, offset+sent, nbytes-sent)
+                            sent += sendfile(sock.fileno(), fno, offset+sent, nbytes-sent)
 
 
                 finally:
-                    f.close()
+                    if fno is not None:
+                        os.close(fno)
+        finally:
+            # make sure we close the socket
+            try:
+                sock.close()
+            except:
+                pass
