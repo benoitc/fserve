@@ -47,7 +47,7 @@ def run_server():
             '--workers', 
             type=int, 
             default=1,
-            help='Number of workers')
+            help='number of workers')
 
     parser.add_argument(
             '--name', 
